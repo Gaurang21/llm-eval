@@ -37,6 +37,14 @@ import type {
 
 const PASS_THRESHOLD = 0.7;
 
+// Load a local .env if present (Node 22 built-in — no dependency) so live mode
+// picks up provider keys. Absent file / older runtime → stays in sample mode.
+try {
+  process.loadEnvFile(path.join(process.cwd(), ".env"));
+} catch {
+  /* no .env — sample mode */
+}
+
 const ENV_KEYS: Record<string, string | undefined> = {
   anthropic: process.env.ANTHROPIC_API_KEY,
   openai: process.env.OPENAI_API_KEY,

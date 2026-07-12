@@ -26,3 +26,20 @@ npm run eval        # run the harness locally, writes data/leaderboard.json
 - **Degradation ladder, no dead ends.** No key → labeled `SAMPLE` stub stream.
 - **Leaderboard is build-time data.** Seeded by `npm run eval`, committed as
   `data/leaderboard.json`, rendered by a React Server Component.
+
+## Seeding the leaderboard
+
+`npm run eval` runs the harness over the case suite × models and writes
+`data/leaderboard.json`, then commit it.
+
+- **Sample mode (no keys):** the real grader pipeline runs over representative
+  per-model answers; output is labeled `SAMPLE` in the UI. Deterministic, stable.
+- **Live mode:** copy `.env.example` → `.env` and set `ANTHROPIC_API_KEY` /
+  `OPENAI_API_KEY`. Those keys are read only by the local harness — never by the
+  deployed app, which is bring-your-own-key.
+
+```bash
+cp .env.example .env    # add your keys
+npm run eval            # writes data/leaderboard.json (source: "live")
+git add data/leaderboard.json && git commit -m "Re-seed leaderboard"
+```
