@@ -60,7 +60,8 @@ npm run eval        # run the harness locally, writes data/leaderboard.json (dev
 4. **One file per provider, one file per grader.** Adding a provider or grader is a new
    file + a registry entry — zero changes to core/harness/route code. Preserve this.
 5. **Graders are typed.** `GraderResult` discriminated union + generic `Grader<C>`.
-   `deterministic: true` graders run first and can short-circuit before the LLM-judge.
+   Deterministic graders run first and short-circuit before the paid graders
+   (LLM-judge, embedding-similarity, agentic judge).
 6. **The leaderboard is build-time data.** It's seeded by running `npm run eval` locally
    and committing `data/leaderboard.json`. The leaderboard page is an RSC that imports
    that file. Do **not** add a runtime write path or a database for it.
@@ -91,12 +92,17 @@ npm run eval        # run the harness locally, writes data/leaderboard.json (dev
 - WCAG AA contrast. Never encode pass/fail by color alone — pair with text/icon.
 - Panes stack vertically on mobile.
 
-## Do NOT build in v1 (out of scope)
+## Scope
 
-Auth / accounts / per-user data · any database or KV store · runtime-writable
-leaderboard · server-held API keys or spend metering · queue/worker for eval runs ·
-agentic grader · embedding-similarity grader. These are explicitly deferred — don't
-add them "to be helpful."
+**v1 shipped** (phases 1–7) plus the phase-8 graders: the **agentic grader**
+(judge-with-tools ReAct loop, streamed/captured steps) and the
+**embedding-similarity grader** (cosine similarity vs a reference) are now
+implemented and wired into the registry, `ResultBadge`, and the harness.
+
+Still out of scope — building any of these reverses the stateless architecture,
+so flag before starting: auth / accounts / per-user data · any database or KV
+store · runtime-writable leaderboard · server-held API keys or spend metering ·
+queue/worker for large eval runs.
 
 ---
 

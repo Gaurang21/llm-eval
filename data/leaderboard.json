@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T22:41:32.699Z",
+  "generatedAt": "2026-07-12T22:51:03.491Z",
   "source": "sample",
   "passThreshold": 0.7,
   "cases": [
@@ -62,6 +62,18 @@
       "name": "Explain evals to a manager",
       "category": "reasoning",
       "prompt": "Explain what an LLM eval harness is to a non-technical manager, in under 120 words."
+    },
+    {
+      "id": "define-recursion",
+      "name": "Define recursion (semantic)",
+      "category": "semantic",
+      "prompt": "Define recursion in one sentence."
+    },
+    {
+      "id": "haiku-databases",
+      "name": "Haiku about databases (agentic)",
+      "category": "reasoning",
+      "prompt": "Write a haiku about databases. Use exactly three lines."
     }
   ],
   "entries": [
@@ -70,11 +82,11 @@
       "label": "Claude Opus 4.8",
       "provider": "anthropic",
       "passRate": 1,
-      "passedCases": 10,
-      "totalCases": 10,
-      "avgLatencyMs": 1270,
-      "avgCostUsd": 0.0017399999999999998,
-      "totalCostUsd": 0.0174,
+      "passedCases": 12,
+      "totalCases": 12,
+      "avgLatencyMs": 1275,
+      "avgCostUsd": 0.00178375,
+      "totalCostUsd": 0.021405,
       "categories": {
         "factual": {
           "passed": 3,
@@ -89,8 +101,12 @@
           "total": 2
         },
         "reasoning": {
-          "passed": 3,
-          "total": 3
+          "passed": 4,
+          "total": 4
+        },
+        "semantic": {
+          "passed": 1,
+          "total": 1
         }
       },
       "cells": [
@@ -268,6 +284,302 @@
               "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
             }
           ]
+        },
+        {
+          "caseId": "define-recursion",
+          "passed": true,
+          "latencyMs": 1526,
+          "tokens": 32,
+          "costUsd": 0.0025199999999999997,
+          "results": [
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 1526,
+              "thresholdMs": 6000
+            },
+            {
+              "kind": "embedding_similarity",
+              "passed": true,
+              "similarity": 0.752,
+              "threshold": 0.5
+            }
+          ]
+        },
+        {
+          "caseId": "haiku-databases",
+          "passed": true,
+          "latencyMs": 1077,
+          "tokens": 17,
+          "costUsd": 0.0014850000000000002,
+          "results": [
+            {
+              "kind": "agentic_judge",
+              "score": 0.95,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "steps": [
+                {
+                  "tool": "word_count",
+                  "input": "",
+                  "observation": "13"
+                }
+              ],
+              "rubric": "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "gpt-4o",
+      "label": "GPT-4o",
+      "provider": "openai",
+      "passRate": 0.9166666666666666,
+      "passedCases": 11,
+      "totalCases": 12,
+      "avgLatencyMs": 907,
+      "avgCostUsd": 0.00025104166666666667,
+      "totalCostUsd": 0.0030125,
+      "categories": {
+        "factual": {
+          "passed": 2,
+          "total": 3
+        },
+        "extraction": {
+          "passed": 2,
+          "total": 2
+        },
+        "format": {
+          "passed": 2,
+          "total": 2
+        },
+        "reasoning": {
+          "passed": 4,
+          "total": 4
+        },
+        "semantic": {
+          "passed": 1,
+          "total": 1
+        }
+      },
+      "cells": [
+        {
+          "caseId": "capital-france",
+          "passed": true,
+          "latencyMs": 677,
+          "tokens": 1,
+          "costUsd": 0.000049999999999999996,
+          "results": [
+            {
+              "kind": "exact_match",
+              "passed": true,
+              "expected": "Paris",
+              "got": "Paris"
+            },
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 677,
+              "thresholdMs": 6000
+            }
+          ]
+        },
+        {
+          "caseId": "apollo-year",
+          "passed": false,
+          "latencyMs": 889,
+          "tokens": 5,
+          "costUsd": 0.0001,
+          "results": [
+            {
+              "kind": "regex",
+              "passed": false,
+              "pattern": "\\b1969\\b"
+            },
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 889,
+              "thresholdMs": 6000
+            }
+          ]
+        },
+        {
+          "caseId": "arithmetic",
+          "passed": true,
+          "latencyMs": 682,
+          "tokens": 1,
+          "costUsd": 0.0000375,
+          "results": [
+            {
+              "kind": "regex",
+              "passed": true,
+              "pattern": "\\b391\\b"
+            }
+          ]
+        },
+        {
+          "caseId": "extract-person",
+          "passed": true,
+          "latencyMs": 1000,
+          "tokens": 7,
+          "costUsd": 0.00013749999999999998,
+          "results": [
+            {
+              "kind": "json_schema",
+              "passed": true,
+              "errors": []
+            },
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 1000,
+              "thresholdMs": 6000
+            }
+          ]
+        },
+        {
+          "caseId": "sentiment-json",
+          "passed": true,
+          "latencyMs": 710,
+          "tokens": 6,
+          "costUsd": 0.000145,
+          "results": [
+            {
+              "kind": "json_schema",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "caseId": "primary-colors",
+          "passed": true,
+          "latencyMs": 716,
+          "tokens": 4,
+          "costUsd": 0.0000925,
+          "results": [
+            {
+              "kind": "regex",
+              "passed": true,
+              "pattern": "^[a-z]+,\\s*[a-z]+,\\s*[a-z]+\\s*$"
+            }
+          ]
+        },
+        {
+          "caseId": "exact-ok",
+          "passed": true,
+          "latencyMs": 830,
+          "tokens": 1,
+          "costUsd": 0.000042499999999999996,
+          "results": [
+            {
+              "kind": "exact_match",
+              "passed": true,
+              "expected": "OK",
+              "got": "OK"
+            }
+          ]
+        },
+        {
+          "caseId": "bat-and-ball",
+          "passed": true,
+          "latencyMs": 1264,
+          "tokens": 42,
+          "costUsd": 0.0004975,
+          "results": [
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 1264,
+              "thresholdMs": 8000
+            },
+            {
+              "kind": "llm_judge",
+              "score": 0.9,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "rubric": "The correct answer is $0.05 (5 cents). Award a high score only if the response states 5 cents / $0.05 AND the reasoning is sound. A response of $0.10 is the classic wrong answer and should score low."
+            }
+          ]
+        },
+        {
+          "caseId": "micro-vs-mono",
+          "passed": true,
+          "latencyMs": 977,
+          "tokens": 53,
+          "costUsd": 0.0005825,
+          "results": [
+            {
+              "kind": "cost",
+              "passed": true,
+              "costUsd": 0.0005825,
+              "thresholdUsd": 0.02
+            },
+            {
+              "kind": "llm_judge",
+              "score": 0.95,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "rubric": "High score if the answer names at least one genuine advantage AND one genuine disadvantage of microservices relative to a monolith, and stays concise (~2 sentences)."
+            }
+          ]
+        },
+        {
+          "caseId": "explain-eval",
+          "passed": true,
+          "latencyMs": 1386,
+          "tokens": 73,
+          "costUsd": 0.0007825,
+          "results": [
+            {
+              "kind": "llm_judge",
+              "score": 0.86,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
+            }
+          ]
+        },
+        {
+          "caseId": "define-recursion",
+          "passed": true,
+          "latencyMs": 1007,
+          "tokens": 32,
+          "costUsd": 0.00033999999999999997,
+          "results": [
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 1007,
+              "thresholdMs": 6000
+            },
+            {
+              "kind": "embedding_similarity",
+              "passed": true,
+              "similarity": 0.752,
+              "threshold": 0.5
+            }
+          ]
+        },
+        {
+          "caseId": "haiku-databases",
+          "passed": true,
+          "latencyMs": 743,
+          "tokens": 17,
+          "costUsd": 0.000205,
+          "results": [
+            {
+              "kind": "agentic_judge",
+              "score": 0.91,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "steps": [
+                {
+                  "tool": "word_count",
+                  "input": "",
+                  "observation": "13"
+                }
+              ],
+              "rubric": "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases."
+            }
+          ]
         }
       ]
     },
@@ -275,12 +587,12 @@
       "modelId": "claude-sonnet-5",
       "label": "Claude Sonnet 5",
       "provider": "anthropic",
-      "passRate": 0.9,
-      "passedCases": 9,
-      "totalCases": 10,
-      "avgLatencyMs": 804,
-      "avgCostUsd": 0.000345,
-      "totalCostUsd": 0.00345,
+      "passRate": 0.8333333333333334,
+      "passedCases": 10,
+      "totalCases": 12,
+      "avgLatencyMs": 803,
+      "avgCostUsd": 0.00033675,
+      "totalCostUsd": 0.004041,
       "categories": {
         "factual": {
           "passed": 3,
@@ -295,8 +607,12 @@
           "total": 2
         },
         "reasoning": {
-          "passed": 3,
-          "total": 3
+          "passed": 4,
+          "total": 4
+        },
+        "semantic": {
+          "passed": 0,
+          "total": 1
         }
       },
       "cells": [
@@ -477,210 +793,47 @@
               "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
             }
           ]
-        }
-      ]
-    },
-    {
-      "modelId": "gpt-4o",
-      "label": "GPT-4o",
-      "provider": "openai",
-      "passRate": 0.9,
-      "passedCases": 9,
-      "totalCases": 10,
-      "avgLatencyMs": 913,
-      "avgCostUsd": 0.00024675,
-      "totalCostUsd": 0.0024675,
-      "categories": {
-        "factual": {
-          "passed": 2,
-          "total": 3
-        },
-        "extraction": {
-          "passed": 2,
-          "total": 2
-        },
-        "format": {
-          "passed": 2,
-          "total": 2
-        },
-        "reasoning": {
-          "passed": 3,
-          "total": 3
-        }
-      },
-      "cells": [
-        {
-          "caseId": "capital-france",
-          "passed": true,
-          "latencyMs": 677,
-          "tokens": 1,
-          "costUsd": 0.000049999999999999996,
-          "results": [
-            {
-              "kind": "exact_match",
-              "passed": true,
-              "expected": "Paris",
-              "got": "Paris"
-            },
-            {
-              "kind": "latency",
-              "passed": true,
-              "latencyMs": 677,
-              "thresholdMs": 6000
-            }
-          ]
         },
         {
-          "caseId": "apollo-year",
+          "caseId": "define-recursion",
           "passed": false,
-          "latencyMs": 889,
-          "tokens": 5,
-          "costUsd": 0.0001,
+          "latencyMs": 752,
+          "tokens": 18,
+          "costUsd": 0.000294,
           "results": [
             {
-              "kind": "regex",
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 752,
+              "thresholdMs": 6000
+            },
+            {
+              "kind": "embedding_similarity",
               "passed": false,
-              "pattern": "\\b1969\\b"
-            },
-            {
-              "kind": "latency",
-              "passed": true,
-              "latencyMs": 889,
-              "thresholdMs": 6000
+              "similarity": 0.285,
+              "threshold": 0.5
             }
           ]
         },
         {
-          "caseId": "arithmetic",
+          "caseId": "haiku-databases",
           "passed": true,
-          "latencyMs": 682,
-          "tokens": 1,
-          "costUsd": 0.0000375,
+          "latencyMs": 845,
+          "tokens": 17,
+          "costUsd": 0.000297,
           "results": [
             {
-              "kind": "regex",
-              "passed": true,
-              "pattern": "\\b391\\b"
-            }
-          ]
-        },
-        {
-          "caseId": "extract-person",
-          "passed": true,
-          "latencyMs": 1000,
-          "tokens": 7,
-          "costUsd": 0.00013749999999999998,
-          "results": [
-            {
-              "kind": "json_schema",
-              "passed": true,
-              "errors": []
-            },
-            {
-              "kind": "latency",
-              "passed": true,
-              "latencyMs": 1000,
-              "thresholdMs": 6000
-            }
-          ]
-        },
-        {
-          "caseId": "sentiment-json",
-          "passed": true,
-          "latencyMs": 710,
-          "tokens": 6,
-          "costUsd": 0.000145,
-          "results": [
-            {
-              "kind": "json_schema",
-              "passed": true,
-              "errors": []
-            }
-          ]
-        },
-        {
-          "caseId": "primary-colors",
-          "passed": true,
-          "latencyMs": 716,
-          "tokens": 4,
-          "costUsd": 0.0000925,
-          "results": [
-            {
-              "kind": "regex",
-              "passed": true,
-              "pattern": "^[a-z]+,\\s*[a-z]+,\\s*[a-z]+\\s*$"
-            }
-          ]
-        },
-        {
-          "caseId": "exact-ok",
-          "passed": true,
-          "latencyMs": 830,
-          "tokens": 1,
-          "costUsd": 0.000042499999999999996,
-          "results": [
-            {
-              "kind": "exact_match",
-              "passed": true,
-              "expected": "OK",
-              "got": "OK"
-            }
-          ]
-        },
-        {
-          "caseId": "bat-and-ball",
-          "passed": true,
-          "latencyMs": 1264,
-          "tokens": 42,
-          "costUsd": 0.0004975,
-          "results": [
-            {
-              "kind": "latency",
-              "passed": true,
-              "latencyMs": 1264,
-              "thresholdMs": 8000
-            },
-            {
-              "kind": "llm_judge",
-              "score": 0.9,
+              "kind": "agentic_judge",
+              "score": 0.83,
               "reasoning": "Meets the rubric: correct and appropriately scoped.",
-              "rubric": "The correct answer is $0.05 (5 cents). Award a high score only if the response states 5 cents / $0.05 AND the reasoning is sound. A response of $0.10 is the classic wrong answer and should score low."
-            }
-          ]
-        },
-        {
-          "caseId": "micro-vs-mono",
-          "passed": true,
-          "latencyMs": 977,
-          "tokens": 53,
-          "costUsd": 0.0005825,
-          "results": [
-            {
-              "kind": "cost",
-              "passed": true,
-              "costUsd": 0.0005825,
-              "thresholdUsd": 0.02
-            },
-            {
-              "kind": "llm_judge",
-              "score": 0.95,
-              "reasoning": "Meets the rubric: correct and appropriately scoped.",
-              "rubric": "High score if the answer names at least one genuine advantage AND one genuine disadvantage of microservices relative to a monolith, and stays concise (~2 sentences)."
-            }
-          ]
-        },
-        {
-          "caseId": "explain-eval",
-          "passed": true,
-          "latencyMs": 1386,
-          "tokens": 73,
-          "costUsd": 0.0007825,
-          "results": [
-            {
-              "kind": "llm_judge",
-              "score": 0.86,
-              "reasoning": "Meets the rubric: correct and appropriately scoped.",
-              "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
+              "steps": [
+                {
+                  "tool": "word_count",
+                  "input": "",
+                  "observation": "13"
+                }
+              ],
+              "rubric": "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases."
             }
           ]
         }
@@ -690,12 +843,12 @@
       "modelId": "claude-haiku-4-5-20251001",
       "label": "Claude Haiku 4.5",
       "provider": "anthropic",
-      "passRate": 0.6,
-      "passedCases": 6,
-      "totalCases": 10,
-      "avgLatencyMs": 556,
-      "avgCostUsd": 0.0000915,
-      "totalCostUsd": 0.000915,
+      "passRate": 0.5833333333333334,
+      "passedCases": 7,
+      "totalCases": 12,
+      "avgLatencyMs": 577,
+      "avgCostUsd": 0.00009266666666666666,
+      "totalCostUsd": 0.001112,
       "categories": {
         "factual": {
           "passed": 2,
@@ -710,8 +863,12 @@
           "total": 2
         },
         "reasoning": {
-          "passed": 1,
-          "total": 3
+          "passed": 2,
+          "total": 4
+        },
+        "semantic": {
+          "passed": 0,
+          "total": 1
         }
       },
       "cells": [
@@ -892,6 +1049,49 @@
               "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
             }
           ]
+        },
+        {
+          "caseId": "define-recursion",
+          "passed": false,
+          "latencyMs": 666,
+          "tokens": 18,
+          "costUsd": 0.00009800000000000001,
+          "results": [
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 666,
+              "thresholdMs": 6000
+            },
+            {
+              "kind": "embedding_similarity",
+              "passed": false,
+              "similarity": 0.285,
+              "threshold": 0.5
+            }
+          ]
+        },
+        {
+          "caseId": "haiku-databases",
+          "passed": true,
+          "latencyMs": 697,
+          "tokens": 17,
+          "costUsd": 0.00009900000000000001,
+          "results": [
+            {
+              "kind": "agentic_judge",
+              "score": 0.96,
+              "reasoning": "Meets the rubric: correct and appropriately scoped.",
+              "steps": [
+                {
+                  "tool": "word_count",
+                  "input": "",
+                  "observation": "13"
+                }
+              ],
+              "rubric": "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases."
+            }
+          ]
         }
       ]
     },
@@ -899,12 +1099,12 @@
       "modelId": "gpt-4o-mini",
       "label": "GPT-4o mini",
       "provider": "openai",
-      "passRate": 0.6,
-      "passedCases": 6,
-      "totalCases": 10,
-      "avgLatencyMs": 591,
-      "avgCostUsd": 0.000013305,
-      "totalCostUsd": 0.00013305,
+      "passRate": 0.5833333333333334,
+      "passedCases": 7,
+      "totalCases": 12,
+      "avgLatencyMs": 623,
+      "avgCostUsd": 0.000013562500000000003,
+      "totalCostUsd": 0.00016275000000000003,
       "categories": {
         "factual": {
           "passed": 3,
@@ -920,7 +1120,11 @@
         },
         "reasoning": {
           "passed": 2,
-          "total": 3
+          "total": 4
+        },
+        "semantic": {
+          "passed": 1,
+          "total": 1
         }
       },
       "cells": [
@@ -1098,6 +1302,49 @@
               "score": 0.94,
               "reasoning": "Meets the rubric: correct and appropriately scoped.",
               "rubric": "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words."
+            }
+          ]
+        },
+        {
+          "caseId": "define-recursion",
+          "passed": true,
+          "latencyMs": 814,
+          "tokens": 32,
+          "costUsd": 0.000020399999999999998,
+          "results": [
+            {
+              "kind": "latency",
+              "passed": true,
+              "latencyMs": 814,
+              "thresholdMs": 6000
+            },
+            {
+              "kind": "embedding_similarity",
+              "passed": true,
+              "similarity": 0.752,
+              "threshold": 0.5
+            }
+          ]
+        },
+        {
+          "caseId": "haiku-databases",
+          "passed": false,
+          "latencyMs": 749,
+          "tokens": 12,
+          "costUsd": 0.000009299999999999999,
+          "results": [
+            {
+              "kind": "agentic_judge",
+              "score": 0.42,
+              "reasoning": "Falls short of the rubric on correctness or scope.",
+              "steps": [
+                {
+                  "tool": "word_count",
+                  "input": "",
+                  "observation": "7"
+                }
+              ],
+              "rubric": "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases."
             }
           ]
         }

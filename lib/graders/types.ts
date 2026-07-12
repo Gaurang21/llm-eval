@@ -14,7 +14,9 @@ export type GraderConfig =
   | { kind: "json_schema"; required: string[] }
   | { kind: "latency"; thresholdMs: number }
   | { kind: "cost"; thresholdUsd: number }
-  | { kind: "llm_judge"; rubric: string; judgeModel?: string; passThreshold?: number };
+  | { kind: "embedding_similarity"; reference: string; threshold: number; embedModel?: string }
+  | { kind: "llm_judge"; rubric: string; judgeModel?: string; passThreshold?: number }
+  | { kind: "agentic_judge"; rubric: string; judgeModel?: string; maxSteps?: number; passThreshold?: number };
 
 /** Narrow a GraderConfig to the config for a specific kind. */
 export type ConfigFor<K extends GraderKind> = Extract<GraderConfig, { kind: K }>;
@@ -34,8 +36,10 @@ export function resultPassed(
     case "json_schema":
     case "latency":
     case "cost":
+    case "embedding_similarity":
       return result.passed;
     case "llm_judge":
+    case "agentic_judge":
       return result.score >= passThreshold;
   }
 }

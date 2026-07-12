@@ -24,11 +24,13 @@ import type { GenRequest, ModelOutput, Usage } from "../types";
 import { MODELS, getProvider } from "../providers/registry";
 import { estimateTokens } from "../tokens";
 import { priceFor, costUsd } from "../pricing";
-import { gradeOutput } from "../graders/registry";
+import { openaiProvider } from "../providers/openai";
+import { gradeOutput, type Deps } from "../graders/registry";
 import type { CompleteFn } from "../graders/llmJudge";
+import type { EmbedFn } from "../graders/embedding";
 import { resultPassed } from "../graders/types";
 import { DATASET } from "./dataset";
-import { sampleOutcome, syntheticLatency } from "./sampleAnswers";
+import { sampleOutcome, syntheticLatency, mockEmbed } from "./sampleAnswers";
 import type {
   EvalCell,
   LeaderboardData,
@@ -64,14 +66,46 @@ function liveJudge(): CompleteFn {
   };
 }
 
-/** Produce one model's output for one case, plus a judge to grade it with. */
+/** A live embedder: OpenAI embeddings, if that key is present. */
+function liveEmbed(): EmbedFn | undefined {
+  const key = keyFor("openai");
+  if (!key) return undefined;
+  return (texts: string[]) => openaiProvider.embed!(texts, key);
+}
+
+/**
+ * Sample-mode judge that serves BOTH the single-shot LLM-judge and the agentic
+ * judge from one pre-decided score. It inspects the system prompt: for the
+ * agentic protocol it emits one tool call and then a FINAL verdict (producing a
+ * believable step trace); otherwise it returns the plain judge JSON.
+ */
+function sampleJudge(judgeScore: number): CompleteFn {
+  const reasoning =
+    judgeScore >= PASS_THRESHOLD
+      ? "Meets the rubric: correct and appropriately scoped."
+      : "Falls short of the rubric on correctness or scope.";
+  const noUsage = { inputTokens: 0, outputTokens: 0 };
+  return async (req) => {
+    const system = req.messages.find((m) => m.role === "system")?.content ?? "";
+    if (/agentic/i.test(system)) {
+      const observed = req.messages.some(
+        (m) => m.role === "user" && m.content.startsWith("OBSERVATION:"),
+      );
+      if (!observed) return { text: "ACTION: word_count\nINPUT: ", usage: noUsage };
+      return { text: `FINAL: ${JSON.stringify({ score: judgeScore, reasoning })}`, usage: noUsage };
+    }
+    return { text: JSON.stringify({ score: judgeScore, reasoning }), usage: noUsage };
+  };
+}
+
+/** Produce one model's output for one case, plus the deps to grade it with. */
 async function produceOutput(
   modelId: string,
   provider: ReturnType<typeof getProvider>,
   live: boolean,
   caseId: string,
   prompt: string,
-): Promise<{ output: ModelOutput; judge: CompleteFn }> {
+): Promise<{ output: ModelOutput; deps: Deps }> {
   const started = Date.now();
 
   if (live) {
@@ -84,31 +118,23 @@ async function produceOutput(
     const latencyMs = Date.now() - started;
     return {
       output: buildOutput(modelId, caseId, text, usage, latencyMs),
-      judge: liveJudge(),
+      deps: { judge: liveJudge(), embed: liveEmbed() },
     };
   }
 
-  // Sample mode: plausible answer, real graders, mock judge with a pre-decided
-  // score so reasoning cases get believable judge results.
+  // Sample mode: plausible answer, real graders, mock judge + mock embedder.
   const { text, judgeScore } = sampleOutcome(modelId, caseId);
   const usage: Usage = {
     inputTokens: estimateTokens(prompt),
     outputTokens: estimateTokens(text),
   };
   const latencyMs = syntheticLatency(modelId, usage.outputTokens, caseId);
-  const mockJudge: CompleteFn = async () => ({
-    text: JSON.stringify({
-      score: judgeScore,
-      reasoning:
-        judgeScore >= PASS_THRESHOLD
-          ? "Meets the rubric: correct and appropriately scoped."
-          : "Falls short of the rubric on correctness or scope.",
-    }),
-    usage: { inputTokens: 0, outputTokens: 0 },
-  });
   return {
     output: buildOutput(modelId, caseId, text, usage, latencyMs),
-    judge: mockJudge,
+    deps: {
+      judge: sampleJudge(judgeScore),
+      embed: async (texts: string[]) => mockEmbed(texts),
+    },
   };
 }
 
@@ -136,14 +162,14 @@ async function runModel(modelId: string, live: boolean): Promise<LeaderboardEntr
   const categories: Record<string, { passed: number; total: number }> = {};
 
   for (const testCase of DATASET) {
-    const { output, judge } = await produceOutput(
+    const { output, deps } = await produceOutput(
       modelId,
       provider,
       live,
       testCase.id,
       testCase.prompt,
     );
-    const results = await gradeOutput(output, testCase.graders, judge);
+    const results = await gradeOutput(output, testCase.graders, deps);
     const passed = results.every((r) => resultPassed(r, PASS_THRESHOLD));
 
     cells.push({

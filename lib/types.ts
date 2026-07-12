@@ -34,12 +34,22 @@ export interface GenRequest {
 }
 
 /** Unified streaming + non-streaming provider. Each per-provider file is the
- *  anti-corruption layer normalizing that vendor's SSE into our delta shape. */
+ *  anti-corruption layer normalizing that vendor's SSE into our delta shape.
+ *  `embed` is optional — only providers with an embeddings API implement it
+ *  (used by the embedding-similarity grader). */
 export interface Provider {
   id: ProviderId | "stub";
   stream(req: GenRequest): AsyncGenerator<{ delta: string }>; // playground + agentic
   complete(req: GenRequest): Promise<{ text: string; usage: Usage }>; // llm-judge
+  embed?(texts: string[], apiKey?: string): Promise<number[][]>; // embedding grader
   meta: { contextWindow: number; pricing: PricePerMTok };
+}
+
+/** One step of the agentic judge's tool-use loop — captured for the drill-down. */
+export interface AgentStep {
+  tool: string;
+  input: string;
+  observation: string;
 }
 
 /**
@@ -70,7 +80,9 @@ export type GraderResult =
   | { kind: "json_schema"; passed: boolean; errors: string[] }
   | { kind: "latency"; passed: boolean; latencyMs: number; thresholdMs: number }
   | { kind: "cost"; passed: boolean; costUsd: number; thresholdUsd: number }
-  | { kind: "llm_judge"; score: number; reasoning: string; rubric: string };
+  | { kind: "embedding_similarity"; passed: boolean; similarity: number; threshold: number }
+  | { kind: "llm_judge"; score: number; reasoning: string; rubric: string }
+  | { kind: "agentic_judge"; score: number; reasoning: string; steps: AgentStep[]; rubric: string };
 
 export type GraderKind = GraderResult["kind"];
 

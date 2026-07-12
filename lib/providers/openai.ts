@@ -9,6 +9,8 @@ import { readSSE, readErrorMessage } from "./sse";
  */
 
 const API_URL = "https://api.openai.com/v1/chat/completions";
+const EMBED_URL = "https://api.openai.com/v1/embeddings";
+const EMBED_MODEL = "text-embedding-3-small";
 
 function toOpenAIBody(req: GenRequest, stream: boolean) {
   return {
@@ -76,5 +78,22 @@ export const openaiProvider: Provider = {
         outputTokens: json.usage?.completion_tokens ?? 0,
       },
     };
+  },
+
+  async embed(texts: string[], apiKey?: string): Promise<number[][]> {
+    if (!apiKey) throw new Error("Missing OpenAI API key");
+    const res = await fetch(EMBED_URL, {
+      method: "POST",
+      headers: headers(apiKey),
+      body: JSON.stringify({ model: EMBED_MODEL, input: texts }),
+    });
+    if (!res.ok) throw new Error(await readErrorMessage(res));
+    const json = (await res.json()) as {
+      data?: { embedding: number[]; index: number }[];
+    };
+    return (json.data ?? [])
+      .slice()
+      .sort((a, b) => a.index - b.index)
+      .map((d) => d.embedding);
   },
 };

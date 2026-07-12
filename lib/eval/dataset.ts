@@ -12,7 +12,7 @@ import type { GraderConfig } from "../graders/types";
 export interface EvalCase {
   id: string;
   name: string;
-  category: "factual" | "extraction" | "format" | "reasoning";
+  category: "factual" | "extraction" | "format" | "reasoning" | "semantic";
   prompt: string;
   graders: GraderConfig[];
 }
@@ -123,6 +123,35 @@ export const DATASET: EvalCase[] = [
         kind: "llm_judge",
         rubric:
           "High score if the explanation is accurate, avoids unexplained jargon, and is genuinely accessible to a non-technical reader while staying under ~120 words.",
+      },
+    ],
+  },
+  {
+    id: "define-recursion",
+    name: "Define recursion (semantic)",
+    category: "semantic",
+    prompt: "Define recursion in one sentence.",
+    graders: [
+      { kind: "latency", thresholdMs: 6000 },
+      {
+        kind: "embedding_similarity",
+        reference:
+          "Recursion is when a function calls itself to solve smaller instances of a problem until it reaches a base case.",
+        threshold: 0.5,
+      },
+    ],
+  },
+  {
+    id: "haiku-databases",
+    name: "Haiku about databases (agentic)",
+    category: "reasoning",
+    prompt: "Write a haiku about databases. Use exactly three lines.",
+    graders: [
+      {
+        kind: "agentic_judge",
+        rubric:
+          "A haiku is three lines. Use the tools (e.g. word_count, regex_test for newlines) to check the structure, then score high only if the response is three lines and clearly about databases.",
+        maxSteps: 4,
       },
     ],
   },

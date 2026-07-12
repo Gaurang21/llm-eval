@@ -39,6 +39,10 @@ const GOOD: Record<string, string> = {
     "Microservices let teams scale and deploy components independently, but they add network, operational, and data-consistency overhead. A monolith is simpler to build and run, yet harder to scale or evolve piecemeal.",
   "explain-eval":
     "An LLM eval harness is like a standardized test for AI models. You collect a set of questions with known-good answers, run each model through them automatically, and score the responses. It turns 'this feels better' into repeatable numbers you can track over time and compare across models.",
+  "define-recursion":
+    "Recursion is a technique where a function calls itself on smaller subproblems until it reaches a base case that stops the calls.",
+  "haiku-databases":
+    "Rows wait in silence\nIndexes light the query path\nData finds its home",
 };
 
 const WEAK: Record<string, string> = {
@@ -55,6 +59,9 @@ const WEAK: Record<string, string> = {
     "Microservices are simply better than monoliths in every way and everyone should use them.",
   "explain-eval":
     "It leverages a polymorphic grader abstraction over a heterogeneous corpus to compute aggregate pass-rate telemetry across the inference surface.",
+  "define-recursion":
+    "It's a programming thing about loops and repeating stuff over and over.",
+  "haiku-databases": "A database stores and retrieves data efficiently.",
 };
 
 /** Deterministic [0,1) hash so re-runs are stable. */
@@ -82,6 +89,25 @@ export function sampleOutcome(modelId: string, caseId: string): SampleOutcome {
   const j = seeded(`judge::${modelId}::${caseId}`);
   const judgeScore = hit ? 0.82 + j * 0.15 : 0.18 + j * 0.27;
   return { text, hit, judgeScore: Math.round(judgeScore * 100) / 100 };
+}
+
+/**
+ * Deterministic sample embedder: a hashing bag-of-words term-frequency vector,
+ * so cosine similarity reflects lexical overlap. Stands in for a real
+ * embeddings API when seeding without keys — good enough to let the
+ * embedding-similarity grader pass on close answers and fail on distant ones.
+ */
+export function mockEmbed(texts: string[]): number[][] {
+  const DIM = 128;
+  return texts.map((t) => {
+    const v = new Array<number>(DIM).fill(0);
+    const words = t.toLowerCase().match(/[a-z]+/g) ?? [];
+    for (const w of words) {
+      const idx = Math.floor(seeded(`w::${w}`) * DIM) % DIM;
+      v[idx] = (v[idx] ?? 0) + 1;
+    }
+    return v;
+  });
 }
 
 export function syntheticLatency(modelId: string, tokens: number, caseId: string): number {

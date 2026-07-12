@@ -1,6 +1,6 @@
 import type { GraderResult, ModelOutput } from "../types";
 import { assertNever } from "../utils";
-import type { GraderConfig } from "./types";
+import type { GraderConfig, GraderKind } from "./types";
 import {
   exactMatchGrader,
   regexGrader,
@@ -9,20 +9,33 @@ import {
   costGrader,
 } from "./deterministic";
 import { createLlmJudge, type CompleteFn } from "./llmJudge";
+import { createEmbeddingGrader, type EmbedFn } from "./embedding";
+import { createAgenticJudge } from "./agentic";
 
 /**
- * Grader registry + runner (DESIGN §5.3). Deterministic graders are static and
- * looked up by kind. The runner enforces the ordering rule: deterministic
- * checks run FIRST, and if any of them fails the case has already failed
- * cheaply — we short-circuit and skip the paid LLM-judge.
+ * Grader registry + runner (DESIGN §5.3, §8). Deterministic graders are cheap
+ * local checks and run FIRST; if any fails, the case has already failed cheaply
+ * and we short-circuit the paid graders (embedding call, LLM-judge, agentic
+ * loop). Non-deterministic graders receive their model-client deps via `Deps`.
  */
 
-/** Dispatch one config to its grader, narrowed exhaustively by kind. `judge`
- *  is only needed for llm_judge; deterministic kinds ignore it. */
+export interface Deps {
+  judge?: CompleteFn; // LLM-judge + agentic judge completions
+  embed?: EmbedFn; // embedding-similarity vectors
+}
+
+const DETERMINISTIC_KINDS: ReadonlySet<GraderKind> = new Set([
+  "exact_match",
+  "regex",
+  "json_schema",
+  "latency",
+  "cost",
+]);
+
 async function gradeOne(
   config: GraderConfig,
   output: ModelOutput,
-  judge?: CompleteFn,
+  deps: Deps,
 ): Promise<GraderResult> {
   switch (config.kind) {
     case "exact_match":
@@ -35,10 +48,19 @@ async function gradeOne(
       return latencyGrader.grade(output, config);
     case "cost":
       return costGrader.grade(output, config);
+    case "embedding_similarity": {
+      if (!deps.embed) {
+        return {
+          kind: "embedding_similarity",
+          passed: false,
+          similarity: 0,
+          threshold: config.threshold,
+        };
+      }
+      return createEmbeddingGrader(deps.embed).grade(output, config);
+    }
     case "llm_judge": {
-      if (!judge) {
-        // No judge client available — report as a non-passing judge result
-        // rather than throwing, so the run still completes.
+      if (!deps.judge) {
         return {
           kind: "llm_judge",
           score: 0,
@@ -46,7 +68,19 @@ async function gradeOne(
           rubric: config.rubric,
         };
       }
-      return createLlmJudge(judge).grade(output, config);
+      return createLlmJudge(deps.judge).grade(output, config);
+    }
+    case "agentic_judge": {
+      if (!deps.judge) {
+        return {
+          kind: "agentic_judge",
+          score: 0,
+          reasoning: "judge unavailable (no model client provided)",
+          steps: [],
+          rubric: config.rubric,
+        };
+      }
+      return createAgenticJudge(deps.judge).grade(output, config);
     }
     default:
       return assertNever(config, "GraderConfig");
@@ -54,32 +88,30 @@ async function gradeOne(
 }
 
 /**
- * Run a case's graders in the right order. Returns every result produced;
- * when a deterministic grader fails, the LLM-judge is skipped (short-circuit).
+ * Run a case's graders in the right order. Deterministic checks run first; if
+ * any fails, the paid non-deterministic graders are skipped (short-circuit).
  */
 export async function gradeOutput(
   output: ModelOutput,
   configs: GraderConfig[],
-  judge?: CompleteFn,
+  deps: Deps = {},
 ): Promise<GraderResult[]> {
-  const deterministic = configs.filter((c) => c.kind !== "llm_judge");
-  const judges = configs.filter((c) => c.kind === "llm_judge");
+  const deterministic = configs.filter((c) => DETERMINISTIC_KINDS.has(c.kind));
+  const paid = configs.filter((c) => !DETERMINISTIC_KINDS.has(c.kind));
 
   const detResults: GraderResult[] = [];
   for (const c of deterministic) {
-    detResults.push(await gradeOne(c, output));
+    detResults.push(await gradeOne(c, output, deps));
   }
 
   const anyDetFailed = detResults.some(
     (r) => "passed" in r && r.passed === false,
   );
+  if (anyDetFailed || paid.length === 0) return detResults;
 
-  // Short-circuit: don't spend on the judge if a cheap check already failed.
-  if (anyDetFailed || judges.length === 0) return detResults;
-
-  const judgeResults: GraderResult[] = [];
-  for (const c of judges) {
-    judgeResults.push(await gradeOne(c, output, judge));
+  const paidResults: GraderResult[] = [];
+  for (const c of paid) {
+    paidResults.push(await gradeOne(c, output, deps));
   }
-  return [...detResults, ...judgeResults];
+  return [...detResults, ...paidResults];
 }
