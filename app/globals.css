@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — "instrument panel" identity (DESIGN §6.4).
+ * A near-neutral dark surface, a single restrained accent reserved for the
+ * live/streaming + pass state, one signal color for error/fail, and a
+ * monospace face for streamed output + all numeric/metric columns.
+ * Every color/type choice below derives from this token set — no ad-hoc values.
+ */
+@theme {
+  --color-surface: #0b0d10; /* base background */
+  --color-raised: #14171c; /* panels, cards, inputs */
+  --color-raised-2: #1b1f26; /* hover / nested raised */
+  --color-border: #262b33;
+  --color-border-strong: #333a44;
+
+  --color-text: #e7e9ec; /* primary text — ~15:1 on surface */
+  --color-muted: #99a1ac; /* secondary text — ~6:1 on surface (AA) */
+  --color-faint: #6b7280; /* tertiary / disabled hints */
+
+  --color-accent: #46d1c0; /* live / streaming / pass — the one bold token */
+  --color-accent-dim: #1e6f68; /* accent used as fill behind text */
+  --color-danger: #f5695f; /* error / fail */
+  --color-danger-dim: #7a2b28;
+  --color-warn: #e2b341; /* judge score mid-range / warnings */
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius: 0.625rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html,
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible, styled keyboard focus everywhere — never removed (a11y §7.2). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respect reduced motion: drop embellishment, keep content (a11y §7.2). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Thin instrument-panel scrollbars for streamed output containers. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 4px;
+}
+
+/* Blinking caret shown at the streaming frontier (respects reduced motion). */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.stream-caret {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1em;
+  margin-left: 1px;
+  translate: 0 0.12em;
+  background-color: var(--color-accent);
+  animation: caret-blink 1s step-end infinite;
+}
+
+/* Live pulse dot for the "streaming" status. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.live-dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
