@@ -12,16 +12,17 @@ import { priceFor } from "../pricing";
  */
 
 const SAMPLE_TEMPLATES = [
-  "Here's a concise take: {topic} comes down to a few moving parts. First, the core idea — then the tradeoffs, then a concrete example so it sticks.",
-  "Short answer: yes, with caveats. On {topic}, the honest framing is that it depends on constraints. Below I walk through the reasoning step by step.",
-  "Let me break {topic} down. 1) What it is. 2) Why it matters. 3) Where it breaks. This is illustrative sample output, not a live model call.",
+  'Here\'s a concise take on "{topic}". It comes down to a few moving parts: first the core idea, then the tradeoffs, then a concrete example so it sticks.',
+  'Short answer: it depends on your constraints. Reasoning about "{topic}", the honest framing is that the right choice shifts with scale and latency budget. Below is the step-by-step.',
+  'Breaking down "{topic}": (1) what it is, (2) why it matters, (3) where it tends to break. Each of these deserves a paragraph in a real answer.',
 ];
 
 function topicFrom(req: GenRequest): string {
   const lastUser = [...req.messages].reverse().find((m) => m.role === "user");
-  const raw = (lastUser?.content ?? "your prompt").trim();
-  const words = raw.split(/\s+/).slice(0, 6).join(" ");
-  return words.length > 0 ? words.toLowerCase() : "your prompt";
+  const raw = (lastUser?.content ?? "your prompt").trim().replace(/\s+/g, " ");
+  if (raw.length === 0) return "your prompt";
+  const short = raw.length > 64 ? raw.slice(0, 61).trimEnd() + "…" : raw;
+  return short;
 }
 
 /** Deterministic template pick so a given prompt+model is stable across runs. */
